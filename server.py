@@ -1,21 +1,31 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import flask
-import requests
-import werkzeug
+
 import time
+import base64
+import os.path
+from flask import Flask, request
 
-app = flask.Flask(__name__)
+app = Flask(__name__)
 
-@app.route('/', methods = ['GET', 'POST'])
+
+@app.route("/", methods=["GET", "POST"])
 def handle_request():
-   imagefile = flask.request.files[0]
-   filename = werkzeug.utils.secure_filename(imagefile.filename)
-   print("Image Filename : " + imagefile.filename)
-   timestr = time.strftime("%Y%m%d-%H%M%S")
-   imagefile.save(timestr + '_' + filename)
-   print("\n")
-   return imageFile.filename
+    try:
+        request_data = request.get_json()
+        decoded_data = base64.b64decode(request_data['imageData'])
+        category_name = request_data['categoryName']
+        image_name = str(int(time.time()))
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+        file_path = os.path.join(category_name, image_name + ".jpeg")
+
+        img_file = open(file_path , 'wb')
+        img_file.write(decoded_data)
+        img_file.close()
+        return ("Image Successfully")
+    except: 
+        return "Error while processing the request"
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
